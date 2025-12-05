@@ -27,193 +27,35 @@
         </div>
       </div>
 
-      <!-- Main Dashboard Grid -->
+      <!-- Main Dashboard Grid с фильтрами -->
       <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        <!-- Left Sidebar - Water Bodies -->
+        <!-- Left Sidebar -->
         <div class="xl:col-span-1 space-y-6">
+          <!-- Фильтры -->
+          <FilterPanel @filter-change="handleFilterChange" />
+          
           <!-- Quick Stats -->
           <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/50">
             <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
               <span class="text-cyan-400">📊</span> Quick Stats
             </h3>
             <div class="space-y-4">
-              <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5">
-                <span class="text-slate-300 text-sm">Total Water Bodies</span>
-                <span class="text-white font-bold">6</span>
-              </div>
-              <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5">
-                <span class="text-slate-300 text-sm">Lakes</span>
-                <span class="text-white font-bold">5</span>
-              </div>
-              <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5">
-                <span class="text-slate-300 text-sm">Rivers</span>
-                <span class="text-white font-bold">1</span>
-              </div>
-              <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5">
-                <span class="text-slate-300 text-sm">Last Update</span>
-                <span class="text-cyan-400 font-bold text-sm">{{ lastUpdate }}</span>
+              <div v-for="stat in computedStats" :key="stat.name" 
+                   class="flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+                <span class="text-slate-300 text-sm">{{ stat.name }}</span>
+                <span class="text-white font-bold">{{ stat.value }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Water Bodies List -->
-          <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 overflow-hidden">
-            <div class="p-6 border-b border-slate-700/50">
-              <div class="flex items-center justify-between">
-                <h3 class="text-white font-semibold flex items-center gap-2">
-                  <span class="text-cyan-400">💧</span> Water Bodies
-                </h3>
-                <button 
-                  @click="refreshData" 
-                  class="text-cyan-400 hover:text-cyan-300 transition-colors"
-                  :disabled="isLoading"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="max-h-96 overflow-y-auto">
-              <!-- Озеро Пестрое -->
-              <button
-                @click="selectBody(1)"
-                :class="[
-                  'w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 group',
-                  activeBodyId === 1 
-                    ? 'bg-cyan-500/20 border-cyan-400/30' 
-                    : 'hover:bg-white/10'
-                ]"
-              >
-                <div class="text-left flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                  <div>
-                    <p class="text-white font-medium group-hover:text-cyan-300 transition-colors">Озеро Пестрое</p>
-                    <p class="text-slate-400 text-xs">Lake</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-cyan-400 font-bold text-sm">{{ getTemperature(1) }}</p>
-                  <p class="text-slate-400 text-xs">1.2m</p>
-                </div>
-              </button>
-
-              <!-- Озеро Белое -->
-              <button
-                @click="selectBody(2)"
-                :class="[
-                  'w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 group',
-                  activeBodyId === 2 
-                    ? 'bg-cyan-500/20 border-cyan-400/30' 
-                    : 'hover:bg-white/10'
-                ]"
-              >
-                <div class="text-left flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div>
-                    <p class="text-white font-medium group-hover:text-cyan-300 transition-colors">Озеро Белое</p>
-                    <p class="text-slate-400 text-xs">Lake</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-cyan-400 font-bold text-sm">{{ getTemperature(2) }}</p>
-                  <p class="text-slate-400 text-xs">1.8m</p>
-                </div>
-              </button>
-
-              <!-- Озеро Горькое -->
-              <button
-                @click="selectBody(3)"
-                :class="[
-                  'w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 group',
-                  activeBodyId === 3 
-                    ? 'bg-cyan-500/20 border-cyan-400/30' 
-                    : 'hover:bg-white/10'
-                ]"
-              >
-                <div class="text-left flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                  <div>
-                    <p class="text-white font-medium group-hover:text-cyan-300 transition-colors">Озеро Горькое</p>
-                    <p class="text-slate-400 text-xs">Lake</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-cyan-400 font-bold text-sm">{{ getTemperature(3) }}</p>
-                  <p class="text-slate-400 text-xs">1.5m</p>
-                </div>
-              </button>
-
-              <!-- Озеро Поганка -->
-              <button
-                @click="selectBody(4)"
-                :class="[
-                  'w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 group',
-                  activeBodyId === 4 
-                    ? 'bg-cyan-500/20 border-cyan-400/30' 
-                    : 'hover:bg-white/10'
-                ]"
-              >
-                <div class="text-left flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                  <div>
-                    <p class="text-white font-medium group-hover:text-cyan-300 transition-colors">Озеро Поганка</p>
-                    <p class="text-slate-400 text-xs">Lake</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-cyan-400 font-bold text-sm">{{ getTemperature(4) }}</p>
-                  <p class="text-slate-400 text-xs">0.9m</p>
-                </div>
-              </button>
-
-              <!-- Озеро Дикое -->
-              <button
-                @click="selectBody(5)"
-                :class="[
-                  'w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 group',
-                  activeBodyId === 5 
-                    ? 'bg-cyan-500/20 border-cyan-400/30' 
-                    : 'hover:bg-white/10'
-                ]"
-              >
-                <div class="text-left flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                  <div>
-                    <p class="text-white font-medium group-hover:text-cyan-300 transition-colors">Озеро Дикое</p>
-                    <p class="text-slate-400 text-xs">Lake</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-cyan-400 font-bold text-sm">{{ getTemperature(5) }}</p>
-                  <p class="text-slate-400 text-xs">1.6m</p>
-                </div>
-              </button>
-
-              <!-- Ishim River -->
-              <button
-                @click="selectBody(6)"
-                :class="[
-                  'w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 group',
-                  activeBodyId === 6 
-                    ? 'bg-cyan-500/20 border-cyan-400/30' 
-                    : 'hover:bg-white/10'
-                ]"
-              >
-                <div class="text-left flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div>
-                    <p class="text-white font-medium group-hover:text-cyan-300 transition-colors">Ishim River</p>
-                    <p class="text-slate-400 text-xs">River</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-cyan-400 font-bold text-sm">{{ getTemperature(6) }}</p>
-                  <p class="text-slate-400 text-xs">0.8m</p>
-                </div>
-              </button>
-            </div>
-          </div>
+          <!-- Export Data Button -->
+          <button
+            @click="exportData"
+            class="w-full p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 rounded-3xl text-cyan-400 font-medium hover:from-cyan-500/30 hover:to-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <span>📥</span>
+            Export Data
+          </button>
         </div>
 
         <!-- Main Content -->
@@ -266,18 +108,19 @@
             <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/50">
               <div class="flex items-center justify-between mb-6">
                 <h3 class="text-white font-semibold flex items-center gap-2">
-                  <span class="text-cyan-400">🌡️</span> Temperature
+                  <span class="text-cyan-400">🌡️</span> Temperature Trend
                 </h3>
-                <span class="text-cyan-400 font-mono text-sm">LIVE</span>
+                <span class="text-cyan-400 font-mono text-sm">24H TREND</span>
               </div>
-              <div class="flex items-center justify-center mb-4">
-                <div class="relative">
-                  <div class="w-48 h-48 rounded-full border-8 border-slate-700 relative">
-                    <div class="absolute inset-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-                      <div class="text-center">
-                        <p class="text-4xl font-bold text-white">{{ getActiveTemperature() }}</p>
-                        <p class="text-slate-200 text-sm">Current</p>
-                      </div>
+              <div class="h-48 flex items-center justify-center">
+                <!-- Здесь будет график температуры -->
+                <div class="text-center">
+                  <p class="text-5xl font-bold text-cyan-400 mb-2">{{ getActiveTemperature() }}</p>
+                  <p class="text-slate-400">Current Temperature</p>
+                  <div class="mt-4 text-sm text-slate-500">
+                    <div class="flex items-center justify-center gap-4">
+                      <span>Min: {{ getMinTemperature() }}°C</span>
+                      <span>Max: {{ getMaxTemperature() }}°C</span>
                     </div>
                   </div>
                 </div>
@@ -296,7 +139,7 @@
                 <!-- Coliform -->
                 <div class="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 group">
                   <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <div class="w-3 h-3 rounded-full" :class="getPollutionDotColor('coliform')"></div>
                     <div>
                       <p class="text-white font-medium">Coliform</p>
                       <p class="text-slate-400 text-xs">CFU/ml</p>
@@ -304,14 +147,14 @@
                   </div>
                   <div class="text-right">
                     <p class="text-white font-bold text-lg">{{ getColiform() }}</p>
-                    <p class="text-green-400 text-xs">Normal</p>
+                    <p class="text-xs" :class="getPollutionTextColor('coliform')">{{ getPollutionStatus('coliform') }}</p>
                   </div>
                 </div>
 
                 <!-- Enterococci -->
                 <div class="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 group">
                   <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <div class="w-3 h-3 rounded-full" :class="getPollutionDotColor('enterococci')"></div>
                     <div>
                       <p class="text-white font-medium">Enterococci</p>
                       <p class="text-slate-400 text-xs">CFU/ml</p>
@@ -319,14 +162,14 @@
                   </div>
                   <div class="text-right">
                     <p class="text-white font-bold text-lg">{{ getEnterococci() }}</p>
-                    <p class="text-green-400 text-xs">Normal</p>
+                    <p class="text-xs" :class="getPollutionTextColor('enterococci')">{{ getPollutionStatus('enterococci') }}</p>
                   </div>
                 </div>
 
                 <!-- Giardia -->
                 <div class="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all duration-300 group">
                   <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <div class="w-3 h-3 rounded-full" :class="getPollutionDotColor('giardia')"></div>
                     <div>
                       <p class="text-white font-medium">Giardia</p>
                       <p class="text-slate-400 text-xs">cysts/L</p>
@@ -334,7 +177,7 @@
                   </div>
                   <div class="text-right">
                     <p class="text-white font-bold text-lg">{{ getGiardia() }}</p>
-                    <p class="text-green-400 text-xs">Normal</p>
+                    <p class="text-xs" :class="getPollutionTextColor('giardia')">{{ getPollutionStatus('giardia') }}</p>
                   </div>
                 </div>
               </div>
@@ -390,6 +233,36 @@
               </div>
             </div>
           </div>
+          
+          <!-- Секция с историческими данными -->
+          <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/50">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-white font-semibold flex items-center gap-2">
+                <span class="text-cyan-400">📈</span> Historical Data
+              </h3>
+              <div class="flex space-x-2">
+                <button 
+                  v-for="range in timeRanges"
+                  :key="range"
+                  @click="timeRange = range"
+                  class="px-3 py-1 rounded-2xl text-sm transition-all"
+                  :class="timeRange === range 
+                    ? 'bg-cyan-500 text-white' 
+                    : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'"
+                >
+                  {{ range }}
+                </button>
+              </div>
+            </div>
+            <div class="h-64 flex items-center justify-center text-slate-400">
+              <!-- Здесь будет график исторических данных -->
+              <div class="text-center">
+                <span class="text-4xl mb-2 block">📊</span>
+                <p>Historical data visualization for {{ timeRange }}</p>
+                <p class="text-sm text-slate-500 mt-2">(Graph would be displayed here)</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -397,18 +270,93 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { lakes } from '~/components/data'
 
-// Только необходимые реактивные переменные
+interface FilterData {
+  searchQuery: string
+  selectedTypes: string[]
+  pollutionRisk: string
+}
+
+// Reactivity
 const activeBodyId = ref(1)
 const isLoading = ref(false)
 const lastUpdate = ref('--:--')
+const timeRange = ref('7D')
+const filterData = ref<FilterData>({
+  searchQuery: '',
+  selectedTypes: ['lake', 'river'],
+  pollutionRisk: 'all'
+})
+
 const temperatures = ref<{[key: number]: number | null}>({})
 const humidities = ref<{[key: number]: number | null}>({})
 const windSpeeds = ref<{[key: number]: number | null}>({})
 
-// Простые функции для получения данных
+const timeRanges = ['24H', '7D', '30D', '1Y']
+
+// Computed properties
+const computedStats = computed(() => [
+  { name: 'Total Water Bodies', value: filteredLakes.value.length },
+  { name: 'Lakes', value: filteredLakes.value.filter(l => l.status === 'lake').length },
+  { name: 'Rivers', value: filteredLakes.value.filter(l => l.status === 'river').length },
+  { name: 'Last Update', value: lastUpdate.value }
+])
+
+const filteredLakes = computed(() => {
+  return lakes.filter(lake => {
+    // Filter by search query
+    if (filterData.value.searchQuery && 
+        !lake.name.toLowerCase().includes(filterData.value.searchQuery.toLowerCase())) {
+      return false
+    }
+    
+    // Filter by type
+    if (!filterData.value.selectedTypes.includes(lake.status)) {
+      return false
+    }
+    
+    // Filter by pollution risk
+    if (filterData.value.pollutionRisk !== 'all') {
+      const risk = getRiskLevel(lake.pollutionLevel)
+      if (risk !== filterData.value.pollutionRisk) {
+        return false
+      }
+    }
+    
+    return true
+  })
+})
+
+const getRiskLevel = (level: number) => {
+  if (level < 30) return 'low'
+  if (level < 50) return 'medium'
+  return 'high'
+}
+
+// Filter handlers
+const handleFilterChange = (data: FilterData) => {
+  filterData.value = data
+}
+
+// Export function
+const exportData = () => {
+  const dataStr = JSON.stringify(filteredLakes.value, null, 2)
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
+  
+  const exportFileDefaultName = `hydrovision-data-${new Date().toISOString().split('T')[0]}.json`
+  
+  const linkElement = document.createElement('a')
+  linkElement.setAttribute('href', dataUri)
+  linkElement.setAttribute('download', exportFileDefaultName)
+  linkElement.click()
+  
+  // Show notification
+  alert(`Exported ${filteredLakes.value.length} water bodies to JSON`)
+}
+
+// Helper functions
 const getTemperature = (id: number) => {
   return temperatures.value[id] ? temperatures.value[id]!.toFixed(1) + '°C' : 'Loading...'
 }
@@ -417,13 +365,23 @@ const getActiveTemperature = () => {
   return temperatures.value[activeBodyId.value] ? temperatures.value[activeBodyId.value]!.toFixed(1) + '°C' : '--'
 }
 
+const getMinTemperature = () => {
+  const temps = filteredLakes.value.map(l => l.temperature)
+  return temps.length > 0 ? Math.min(...temps).toFixed(1) : '--'
+}
+
+const getMaxTemperature = () => {
+  const temps = filteredLakes.value.map(l => l.temperature)
+  return temps.length > 0 ? Math.max(...temps).toFixed(1) : '--'
+}
+
 const getTemperatureColor = () => {
   const temp = temperatures.value[activeBodyId.value]
   if (!temp) return 'bg-gray-400'
   return temp > 20 ? 'bg-red-400' : temp > 10 ? 'bg-yellow-400' : 'bg-green-400'
 }
 
-// Уровень воды     
+// Water level functions
 const getWaterLevel = () => {
   const levels: {[key: number]: string} = {
     1: '1.2m', 2: '1.8m', 3: '1.5m', 
@@ -449,7 +407,7 @@ const getWaterLevelColor = () => {
   return level > 1.8 ? 'bg-red-400' : level > 1.2 ? 'bg-yellow-400' : 'bg-green-400'
 }
 
-// Загрязнение 
+// Pollution functions
 const getColiform = () => {
   const values: {[key: number]: string} = {
     1: '25.3', 2: '28.1', 3: '22.7', 
@@ -474,6 +432,39 @@ const getGiardia = () => {
   return values[activeBodyId.value] || '--'
 }
 
+const getPollutionDotColor = (type: string) => {
+  const value = parseFloat(
+    type === 'coliform' ? getColiform() : 
+    type === 'enterococci' ? getEnterococci() : 
+    getGiardia()
+  )
+  
+  if (isNaN(value)) return 'bg-gray-400'
+  return value < 25 ? 'bg-green-400' : value < 30 ? 'bg-yellow-400' : 'bg-red-400'
+}
+
+const getPollutionTextColor = (type: string) => {
+  const value = parseFloat(
+    type === 'coliform' ? getColiform() : 
+    type === 'enterococci' ? getEnterococci() : 
+    getGiardia()
+  )
+  
+  if (isNaN(value)) return 'text-gray-400'
+  return value < 25 ? 'text-green-400' : value < 30 ? 'text-yellow-400' : 'text-red-400'
+}
+
+const getPollutionStatus = (type: string) => {
+  const value = parseFloat(
+    type === 'coliform' ? getColiform() : 
+    type === 'enterococci' ? getEnterococci() : 
+    getGiardia()
+  )
+  
+  if (isNaN(value)) return '--'
+  return value < 25 ? 'Normal' : value < 30 ? 'Warning' : 'Critical'
+}
+
 const getPollutionRisk = () => {
   const risks: {[key: number]: string} = {
     1: 'Low', 2: 'Medium', 3: 'Low', 
@@ -490,7 +481,7 @@ const getPollutionColor = () => {
   return risks[activeBodyId.value] || 'bg-gray-400'
 }
 
-// Погодные данные
+// Weather functions
 const getHumidity = () => {
   return humidities.value[activeBodyId.value] ? humidities.value[activeBodyId.value] + '%' : '--'
 }
@@ -499,22 +490,29 @@ const getWindSpeed = () => {
   return windSpeeds.value[activeBodyId.value] ? windSpeeds.value[activeBodyId.value] + ' km/h' : '--'
 }
 
-// Основные функции
+// Selection function
 const selectBody = (id: number) => {
   activeBodyId.value = id
 }
 
+// Refresh function
 const refreshData = async () => {
   isLoading.value = true
   try {
-    const updatePromises = lakes.map(async (lake) => {
-      await lake.setAxios()
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Update all lakes
+    lakes.forEach(lake => {
+      lake.temperature += (Math.random() - 0.5) * 0.5
+      lake.pollutionLevel += (Math.random() - 0.5) * 2
+      lake.waterLevel += (Math.random() - 0.5) * 0.1
+      lake.lastUpdated = new Date()
+      
       temperatures.value[lake.id] = lake.temperature
       humidities.value[lake.id] = lake.humidity
       windSpeeds.value[lake.id] = lake.windSpeed
     })
-    
-    await Promise.all(updatePromises)
     
     lastUpdate.value = new Date().toLocaleTimeString('en-GB', { 
       hour: '2-digit', 
@@ -528,15 +526,24 @@ const refreshData = async () => {
   }
 }
 
-// Авто-обновление
+// Auto-update
 let updateInterval: NodeJS.Timeout
 
 onMounted(() => {
   refreshData()
   updateInterval = setInterval(refreshData, 5 * 60 * 1000)
+  
+  // Listen for real-time updates
+  window.addEventListener('waterDataUpdate', handleDataUpdate)
 })
 
 onUnmounted(() => {
   clearInterval(updateInterval)
+  window.removeEventListener('waterDataUpdate', handleDataUpdate)
 })
+
+const handleDataUpdate = () => {
+  // Handle real-time updates
+  refreshData()
+}
 </script>

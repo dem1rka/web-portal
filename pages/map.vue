@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <!-- Main Content Grid -->
+      <!-- Main Content Grid с фильтрами -->
       <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
         <!-- Left Sidebar -->
         <div class="xl:col-span-1 space-y-6">
@@ -67,6 +67,9 @@
             </div>
           </div>
 
+          <!-- Фильтры -->
+          <FilterPanel @filter-change="handleFilterChange" />
+          
           <!-- Water Bodies List -->
           <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 overflow-hidden">
             <div class="p-6 border-b border-slate-700/50">
@@ -76,7 +79,7 @@
             </div>
             <div class="max-h-96 overflow-y-auto">
               <button 
-                v-for="body in lakes" 
+                v-for="body in filteredLakes" 
                 :key="body.id" 
                 @click="zoomToMarker(body.lat, body.lng)"
                 class="w-full p-4 flex items-center justify-between transition-all duration-300 border-b border-slate-700/30 last:border-b-0 group hover:bg-white/10"
@@ -151,7 +154,7 @@
                   
                   <!-- Water Bodies Markers -->
                   <LMarker 
-                    v-for="(lake, i) in lakes" 
+                    v-for="(lake, i) in filteredLakes" 
                     :key="i"
                     :lat-lng="[lake.lat, lake.lng]"
                     :draggable="false"
@@ -181,6 +184,16 @@
                             <span class="text-slate-600">Longitude:</span>
                             <span class="font-mono">{{ lake.lng.toFixed(4) }}</span>
                           </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-600">Temperature:</span>
+                            <span class="font-medium text-cyan-600">{{ lake.temperature }}°C</span>
+                          </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-600">Pollution:</span>
+                            <span class="font-medium" :class="getPollutionClass(lake.pollutionLevel)">
+                              {{ lake.pollutionLevel }}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </LPopup>
@@ -192,14 +205,24 @@
             <!-- Map Controls -->
             <div class="flex items-center justify-between mt-4 px-2">
               <div class="text-slate-400 text-sm">
-                Zoom: {{ mapZoom }}x • Center: {{ mapCenter[0].toFixed(4) }}, {{ mapCenter[1].toFixed(4) }}
+                Showing {{ filteredLakes.length }} of {{ lakes.length }} water bodies
+                • Zoom: {{ mapZoom }}x
               </div>
-              <button 
-                @click="resetView"
-                class="px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-2xl border border-cyan-400/30 hover:bg-cyan-500/30 transition-all duration-300 text-sm font-medium"
-              >
-                Reset View
-              </button>
+              <div class="flex gap-2">
+                <button 
+                  @click="exportMapData"
+                  class="px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-2xl border border-cyan-400/30 hover:bg-cyan-500/30 transition-all duration-300 text-sm font-medium flex items-center gap-2"
+                >
+                  <span>📥</span>
+                  Export
+                </button>
+                <button 
+                  @click="resetView"
+                  class="px-4 py-2 bg-slate-700/50 text-slate-300 rounded-2xl border border-slate-600 hover:bg-slate-600/50 transition-all duration-300 text-sm font-medium"
+                >
+                  Reset View
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -209,19 +232,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, computed } from 'vue'
 import { LMap, LTileLayer, LMarker, LTooltip, LPopup } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css'
-import { LakeData, lakes } from '~/components/data';
+import { lakes } from '~/components/data';
 
 type LatLngTuple = [number, number]
 
+interface FilterData {
+  searchQuery: string
+  selectedTypes: string[]
+  pollutionRisk: string
+}
+
+// Reactivity
 const petropavl = ref<LatLngTuple>([54.88, 69.16])
 const mapCenter = ref<LatLngTuple>([54.88, 69.16])
 const mapZoom = ref(11)
+const filterData = ref<FilterData>({
+  searchQuery: '',
+  selectedTypes: ['lake', 'river'],
+  pollutionRisk: 'all'
+})
 
 // Stats data
-const stats = ref([
+const stats = computed(() => [
   {
     name: "Total Water Bodies",
     count: lakes.length,
@@ -239,13 +274,75 @@ const stats = ref([
   }
 ])
 
-// Zoom to marker function
+// Filtered lakes
+const filteredLakes = computed(() => {
+  return lakes.filter(lake => {
+    // Filter by search query
+    if (filterData.value.searchQuery && 
+        !lake.name.toLowerCase().includes(filterData.value.searchQuery.toLowerCase())) {
+      return false
+    }
+    
+    // Filter by type
+    if (!filterData.value.selectedTypes.includes(lake.status)) {
+      return false
+    }
+    
+    // Filter by pollution risk
+    if (filterData.value.pollutionRisk !== 'all') {
+      const risk = getRiskLevel(lake.pollutionLevel)
+      if (risk !== filterData.value.pollutionRisk) {
+        return false
+      }
+    }
+    
+    return true
+  })
+})
+
+const getRiskLevel = (level: number) => {
+  if (level < 30) return 'low'
+  if (level < 50) return 'medium'
+  return 'high'
+}
+
+const getPollutionClass = (level: number) => {
+  if (level < 30) return 'text-green-600'
+  if (level < 50) return 'text-yellow-600'
+  return 'text-red-600'
+}
+
+// Filter handlers
+const handleFilterChange = (data: FilterData) => {
+  filterData.value = data
+}
+
+// Export function
+const exportMapData = () => {
+  const dataStr = JSON.stringify(filteredLakes.value.map(lake => ({
+    name: lake.name,
+    type: lake.status,
+    coordinates: { lat: lake.lat, lng: lake.lng },
+    temperature: lake.temperature,
+    pollutionLevel: lake.pollutionLevel,
+    waterLevel: lake.waterLevel
+  })), null, 2)
+  
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
+  const exportFileDefaultName = `hydrovision-map-data-${new Date().toISOString().split('T')[0]}.json`
+  
+  const linkElement = document.createElement('a')
+  linkElement.setAttribute('href', dataUri)
+  linkElement.setAttribute('download', exportFileDefaultName)
+  linkElement.click()
+}
+
+// Map functions
 const zoomToMarker = (lat: number, lng: number) => {
   mapCenter.value = [lat, lng]
   mapZoom.value = 14
 }
 
-// Reset view function
 const resetView = () => {
   mapCenter.value = [54.88, 69.16]
   mapZoom.value = 11

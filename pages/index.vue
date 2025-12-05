@@ -34,22 +34,25 @@
             <!-- Stats Grid -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-md">
               <div 
-                class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-cyan-400/30 transition-all duration-300 group"
+                class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-cyan-400/30 transition-all duration-300 group cursor-pointer"
+                @click="$router.push('/map')"
               >
-                <div class="text-2xl font-bold text-white mb-1 group-hover:scale-110 transition-transform">6</div>
+                <div class="text-2xl font-bold text-white mb-1 group-hover:scale-110 transition-transform">{{ lakes.length }}</div>
                 <div class="text-xs text-slate-400 uppercase tracking-wider">Water Bodies</div>
               </div>
               <div 
-                class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-cyan-400/30 transition-all duration-300 group"
+                class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-cyan-400/30 transition-all duration-300 group cursor-pointer"
+                @click="$router.push('/analytics')"
               >
-                <div class="text-2xl font-bold text-white mb-1 group-hover:scale-110 transition-transform">5</div>
-                <div class="text-xs text-slate-400 uppercase tracking-wider">Lakes</div>
+                <div class="text-2xl font-bold text-white mb-1 group-hover:scale-110 transition-transform">{{ lakes.length }}</div>
+                <div class="text-xs text-slate-400 uppercase tracking-wider">Monitoring Stations</div>
               </div>
               <div 
-                class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-cyan-400/30 transition-all duration-300 group"
+                class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-cyan-400/30 transition-all duration-300 group cursor-pointer"
+                @click="$router.push('/analytics')"
               >
-                <div class="text-2xl font-bold text-white mb-1 group-hover:scale-110 transition-transform">1</div>
-                <div class="text-xs text-slate-400 uppercase tracking-wider">Rivers</div>
+                <div class="text-2xl font-bold text-white mb-1 group-hover:scale-110 transition-transform">{{ lakes.length * 8 }}</div>
+                <div class="text-xs text-slate-400 uppercase tracking-wider">Data Points</div>
               </div>
             </div>
 
@@ -103,7 +106,7 @@
                     
                     <!-- Water Bodies Markers -->
                     <LMarker 
-                      v-for="(lake, i) in lakes" 
+                      v-for="(lake, i) in filteredLakes" 
                       :key="i"
                       :lat-lng="[lake.lat, lake.lng]"
                       :draggable="false"
@@ -176,39 +179,34 @@
         </div>
       </div>
     </section>
+    
+    <!-- Новый раздел: Активные оповещения -->
+    <section class="px-6 pb-20 max-w-7xl mx-auto">
+      <div class="mb-8">
+        <h2 class="text-3xl font-bold text-white mb-2">Live Alerts & Updates</h2>
+        <p class="text-slate-300">Real-time monitoring alerts based on actual sensor data</p>
+      </div>
+      
+      <AlertsPanel />
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { LMap, LTileLayer, LMarker, LTooltip } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { lakes } from '~/components/data'
 
 type LatLngTuple = [number, number]
 
-// Mini map configuration
 const miniMapCenter = ref<LatLngTuple>([54.88, 69.16])
 const miniMapZoom = ref(10)
 const petropavl = ref<LatLngTuple>([54.88, 69.16])
 
-// Remove the unused functions from your original code
-const closeMenu = () => {
-  // This function is not used in this component
-  // It should be in your layout component
-}
-
-const handleClickOutside = (event: Event) => {
-  // This function is not used in this component  
-  // It should be in your layout component
-}
-
-onMounted(() => {
-  // You can add any map initialization logic here if needed
-})
-
-onUnmounted(() => {
-  // Cleanup if needed
+// Filter lakes for map
+const filteredLakes = computed(() => {
+  return lakes.slice(0, 4)
 })
 </script>
 
