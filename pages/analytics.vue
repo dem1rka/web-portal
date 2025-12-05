@@ -282,9 +282,6 @@
                   </div>
                 </div>
               </div>
-              <div class="text-center">
-                <p class="text-slate-400 text-sm">Real-time from weather API</p>
-              </div>
             </div>
 
             <!-- Pollution Levels -->
@@ -426,7 +423,7 @@ const getTemperatureColor = () => {
   return temp > 20 ? 'bg-red-400' : temp > 10 ? 'bg-yellow-400' : 'bg-green-400'
 }
 
-// Уровень воды (статичные данные)
+// Уровень воды     
 const getWaterLevel = () => {
   const levels: {[key: number]: string} = {
     1: '1.2m', 2: '1.8m', 3: '1.5m', 
@@ -452,7 +449,7 @@ const getWaterLevelColor = () => {
   return level > 1.8 ? 'bg-red-400' : level > 1.2 ? 'bg-yellow-400' : 'bg-green-400'
 }
 
-// Загрязнение (статичные данные)
+// Загрязнение 
 const getColiform = () => {
   const values: {[key: number]: string} = {
     1: '25.3', 2: '28.1', 3: '22.7', 
